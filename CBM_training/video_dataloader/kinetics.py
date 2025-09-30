@@ -8,8 +8,8 @@ from torchvision import transforms
 import warnings
 from decord import VideoReader, cpu
 from torch.utils.data import Dataset
-from video_dataloader import video_transforms
-from video_dataloader import volume_transforms
+from . import video_transforms
+from . import volume_transforms
 
 
 class VideoClsDataset(Dataset):
