@@ -4,12 +4,12 @@ from torchvision import datasets, transforms, models
 
 import CBM_training.model.clip as clip
 from pytorchcv.model_provider import get_model as ptcv_get_model
-from video_dataloader.datasets import build_dataset
+from CBM_training.video_dataloader.datasets import build_dataset
 import CBM_training.model.modeling_finetune as modeling_finetune
 from collections import OrderedDict
 from timm.models import create_model
 from CBM_training.model.modeling_aim import AIM
-from video_dataloader import video_utils
+from CBM_training.video_dataloader import video_utils
 DATASET_ROOTS = {
     "imagenet_train": "YOUR_PATH/CLS-LOC/train/",
     "imagenet_val": "YOUR_PATH/ImageNet_val/",
