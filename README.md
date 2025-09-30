@@ -1,6 +1,6 @@
 # DANCE: Disentangled Concepts Speak Louder Than Words – Explainable Video Action Recognition [[NeurIPS 2025 Spotlight]]()
 
-[![Conference](https://img.shields.io/badge/NeurIPS-2025-red)]() [![Project Page](https://jong980812.github.io/DANCE/)]() [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)]() ![visitor badge](https://visitor-badge.laobi.icu/badge?page_id=your_github_username.DANCE)
+[![Conference](https://img.shields.io/badge/NeurIPS-2025-red)]() [![Project Page](https://img.shields.io/badge/Project-Page-green)](https://jong980812.github.io/DANCE/) [![Lab](https://img.shields.io/badge/Vision%20and%20Learning-Lab-orange)](https://vll.khu.ac.kr/)  [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)]() ![visitor badge](https://visitor-badge.laobi.icu/badge?page_id=your_github_username.DANCE)
 
 ---
 <!--
