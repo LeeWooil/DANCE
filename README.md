@@ -59,9 +59,9 @@ DANCE/
 │   ├── Motion_discovery/
 │   └── ...
 │── Dataset/
-|── Experiments/
-|   ├── Evaluation.ipynb
-|   └── Intervention.ipynb
+│── Experiments/
+│   ├── Evaluation.ipynb
+│   └── Intervention.ipynb
 │── result/
 │── requirements.txt
 │──
