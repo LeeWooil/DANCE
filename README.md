@@ -3,12 +3,10 @@
 [![Conference](https://img.shields.io/badge/NeurIPS-2025-red)]() [![Project Page](https://img.shields.io/badge/Project-Page-green)](https://jong980812.github.io/DANCE/) [![Lab](https://img.shields.io/badge/Vision%20and%20Learning-Lab-orange)](https://vll.khu.ac.kr/)  [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)]() ![visitor badge](https://visitor-badge.laobi.icu/badge?page_id=your_github_username.DANCE)
 
 ---
-<!--
 <p align="center">
-  <img src="./assets/dance_framework.png" alt="DANCE Framework Overview" width="800"/>
+  <img src="assets/architecture-gif.gif" alt="DANCE Architecture Overview" width="800"/>
 </p>
--->
----
+
 
 ## ✨ Highlights
 
@@ -125,8 +123,10 @@ Evaluation scripts and concept intervention scripts are included in:
 
 - `Experiments/Evaluation.ipynb`
 - `Experiments/Intervention.ipynb`
+<p align="center">
+  <img src="assets/Demo_no_animation.gif" alt="Prediction Demo" width="700"/>
+</p>
 
----
 
 ## 📎 Citation
 
@@ -147,10 +147,7 @@ This project is licensed under the [CC BY 4.0](https://creativecommons.org/licen
 
 ---
 
-## 🤝 Acknowledgements
+## 🙏 Acknowledgements
 
-This work builds upon:
-<!-- - [PCBEAR](https://github.com/jong980812/PCBEAR)
-- [VideoMAE](https://github.com/MCG-NJU/VideoMAE)
-- [InternVideo](https://github.com/OpenGVLab/InternVideo)
-- [CLIP](https://github.com/openai/CLIP) -->
+This work builds upon:  
+[Trustworthy-ML-Lab/Label-free-CBM](https://github.com/Trustworthy-ML-Lab/Label-free-CBM/tree/main)
