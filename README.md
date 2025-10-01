@@ -21,16 +21,27 @@
 
 ## 🛠️ Installation
 
-We recommend using `conda`.
+We provide two ways to set up the environment:
 
+### Option 1. Using conda with environment.yml (recommended for reproducibility)
 ```bash
+# Create and activate environment
+conda env create -f environment.yml
+conda activate dance
+```
+### Option 2. Manual setup with requirements.txt
+```bash
+# Create and activate environment
 conda create -n dance python=3.10 -y
 conda activate dance
 
+# Install PyTorch (modify CUDA version if needed)
 conda install pytorch=2.5.1 torchvision=0.20.1 torchaudio=2.5.1 pytorch-cuda=12.1 -c pytorch -c nvidia
 
+# Install additional dependencies
 pip install -r requirements.txt
 ```
+
 
 ---
 
@@ -48,19 +59,23 @@ DANCE/
 │   ├── Motion_discovery/
 │   └── ...
 │── Dataset/
+|── Experiments/
+|   ├── Evaluation.ipynb
+|   └── Intervention.ipynb
 │── result/
 │── requirements.txt
+│──
 │── README.md
 ```
 
 ---
 
 ## 🧠 Dataset and Features
-
+<!-- 
 - `Penn Action` is the main benchmark. Videos and annotations should be organized as:
 
 ```bash
-/local_datasets/Penn_Action/videos/
+/Penn_Action/videos/
 ... Penn_Action_motion_label/
 ... Penn_Action_feature/
 ```
@@ -68,7 +83,7 @@ DANCE/
 - Precomputed features:
   - `--backbone_features`: extracted from VideoMAE
   - `--vlm_features`: extracted from InternVideo-200M
-  - `--pose_label`: cluster-based motion labels
+  - `--pose_label`: cluster-based motion labels -->
 
 ---
 
@@ -108,18 +123,17 @@ python CBM_training/train_video_cbm.py \
 
 Evaluation scripts and concept intervention scripts are included in:
 
-- `CBM_training/eval_video_cbm.py`
-- `concept_visualize_video/`
-- `utils/cbm_utils.py`
+- `Experiments/Evaluation.ipynb`
+- `Experiments/Intervention.ipynb`
 
 ---
 
 ## 📎 Citation
 
 ```bibtex
-@inproceedings{lee2025dance,
+@inproceedings{,
   title={DANCE: Disentangled Concepts Speak Louder Than Words – Explainable Video Action Recognition},
-  author={Lee, Wooil and Kim, Jongseo and Choi, Jinwoo},
+  author={},
   booktitle={NeurIPS},
   year={2025}
 }
