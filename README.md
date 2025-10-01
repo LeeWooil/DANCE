@@ -1,4 +1,5 @@
-# DANCE: Disentangled Concepts Speak Louder Than Words – Explainable Video Action Recognition [[NeurIPS 2025 Spotlight]]()
+# <img src="assets/dance_logo.png" alt="DANCE Logo" width="50"/> DANCE: Disentangled Concepts Speak Louder Than Words – Explainable Video Action Recognition 
+# <img src="assets/spotlight.png" alt="DANCE Logo" width="30"/>NeurIPS 2025 Spotlight
 
 [![Conference](https://img.shields.io/badge/NeurIPS-2025-red)]() [![Project Page](https://img.shields.io/badge/Project-Page-green)](https://jong980812.github.io/DANCE/) [![Lab](https://img.shields.io/badge/Vision%20and%20Learning-Lab-orange)](https://vll.khu.ac.kr/)  [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)]() ![visitor badge](https://visitor-badge.laobi.icu/badge?page_id=your_github_username.DANCE)
 
@@ -68,7 +69,13 @@ DANCE/
 
 ---
 
-## 🧠 Dataset and Features
+## 📂 Dataset 
+We used the following datasets in our experiments:
+
+- [Penn Action](https://dreamdragon.github.io/PennAction/)
+- [HAA500](https://www.cse.ust.hk/haa/)
+- [KTH Action](https://www.csc.kth.se/cvap/actions/)
+- [UCF101](https://www.crcv.ucf.edu/data/UCF101.php)
 <!-- 
 - `Penn Action` is the main benchmark. Videos and annotations should be organized as:
 
