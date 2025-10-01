@@ -119,7 +119,7 @@ python CBM_training/train_video_cbm.py \
     --spatial_concept_set .result/Penn_Action_text_concept/Penn_action_object_concept.txt \
     --place_concept_set .result/Penn_Action_text_concept/Penn_action_scene_concept.txt \
     --batch_size 64 \
-    --finetune .result/Penn_Action_feature/Backbone/Penn_action_ssv2_pretrain.pt \
+    --finetune PATH_TO_BACKBONE.pt \
     --dual_encoder internvid_200m \
     --activation_dir ./result/Penn_Action_result \
     --save_dir ./result/Penn_Action_result \
