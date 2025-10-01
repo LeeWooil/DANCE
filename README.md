@@ -91,18 +91,35 @@ We used the following datasets in our experiments:
   - `--pose_label`: cluster-based motion labels -->
 
 ---
+## 🔎 Motion Dynamics Concept Discovery
+ ```bash
+ python Concept_discovery/main.py \
+    --dataset Penn_action \
+    --anno_path ./Dataset/Penn_action \
+    --json_path PATH_TO_SKELETON_JSON \
+    --output_path .result/Penn_Action_motion_label \
+    --keyframe_path ./result/Penn_Action_keyframe \
+    --num_subsequence 12 \
+    --len_subsequence 25 \
+    --use_partition_num 3 \
+    --subsampling_mode sim+conf \
+    --confidence 0.5 \
+    --save_fps 10 \
+    --clustering_mode partition \
+    --req_cluster 45
+  ```
 
+  ---
 ## 🚀 Training
 
 ```bash
 python CBM_training/train_video_cbm.py \
     --data_set penn-action \
     --nb_classes 15 \
-    --spatial_concept_set PATH_TO_OBJECT_CONCEPTS.txt \
-    --place_concept_set PATH_TO_SCENE_CONCEPTS.txt \
-    --temporal_concept_set PATH_TO_TEMPORAL_CONCEPTS.txt \
+    --spatial_concept_set .result/Penn_Action_text_concept/Penn_action_object_concept.txt \
+    --place_concept_set .result/Penn_Action_text_concept/Penn_action_scene_concept.txt \
     --batch_size 64 \
-    --finetune PATH_TO_BACKBONE.pt \
+    --finetune .result/Penn_Action_feature/Backbone/Penn_action_ssv2_pretrain.pt \
     --dual_encoder internvid_200m \
     --activation_dir ./result/Penn_Action_result \
     --save_dir ./result/Penn_Action_result \
@@ -112,10 +129,10 @@ python CBM_training/train_video_cbm.py \
     --backbone vmae_vit_base_patch16_224 \
     --proj_steps 3000 \
     --train_mode pose spatial place \
-    --data_path ./data/videos \
-    --backbone_features ./features/backbone.pt \
-    --vlm_features ./features/vlm.pt \
-    --pose_label ./motion_labels \
+    --data_path PATH_TO_DATASET \
+    --backbone_features .result/Penn_Action_feature/Video_feature/penn-action_train_vmae_vit_base_patch16_224.pt \
+    --vlm_features .result/Penn_Action_feature/VLM_feature/penn-action_train_internvid_200m.pt \
+    --pose_label .result/Penn_Action_motion_label \
     --proj_batch_size 50000 \
     --saga_batch_size 128 \
     --loss_mode concept \
