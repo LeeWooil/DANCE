@@ -213,12 +213,12 @@ class UCF101_SCUBA(Dataset):
             else:
                 temporal_step = 0
 
-            if self.test_num_crop == 1: #! 1로 되어 있어야함
+            if self.test_num_crop == 1: 
                 spatial_start = (max(buffer.shape[1], buffer.shape[2]) - self.short_side_size) // 2
             else:
                 spatial_start = int(split_nb * spatial_step)
 
-            if self.test_num_segment == 1: #! 1로 되어 있ㅎ어야 함
+            if self.test_num_segment == 1: 
                 temporal_start = (buffer.shape[0] - self.clip_len) // 2
             else:
                 temporal_start = int(chunk_nb * temporal_step)

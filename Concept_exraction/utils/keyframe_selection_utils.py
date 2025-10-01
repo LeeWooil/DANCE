@@ -43,23 +43,11 @@ def convert_frame_to_grayscale(frame):
         gray = cv2.GaussianBlur(gray, (9, 9), 0.0)
     return grayframe, gray
 
-# def prepare_dirs(keyframePath, imageGridsPath, csvPath):
-#     if not os.path.exists(keyframePath):
-#         os.makedirs(keyframePath)
-#     # if not os.path.exists(imageGridsPath):
-#     #     os.makedirs(imageGridsPath)
-#     if not os.path.exists(csvPath):
-#         os.makedirs(csvPath)
+
 def prepare_dirs(keyframePath):
     if not os.path.exists(keyframePath):
         os.makedirs(keyframePath)
-    # if not os.path.exists(imageGridsPath):
-    #     os.makedirs(imageGridsPath)
 def prepare_csv_dirs(csvPath):
-    # if not os.path.exists(keyframePath):
-    #     os.makedirs(keyframePath)
-    # if not os.path.exists(imageGridsPath):
-    #     os.makedirs(imageGridsPath)
     if not os.path.exists(csvPath):
         os.makedirs(csvPath)
 
@@ -79,10 +67,10 @@ def save_keyframes_as_video(keyframePath, output_video, frame_size, fps=50):
     )
     
     if not images:
-        print("⚠️ 저장된 키프레임이 없습니다.")
+        print("⚠️ No saved keyframes found.")
         return
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # MP4 코덱
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  
     out = cv2.VideoWriter(output_video, fourcc, fps, frame_size)
 
     for img_name in images:

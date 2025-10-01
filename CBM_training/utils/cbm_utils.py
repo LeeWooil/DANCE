@@ -83,12 +83,6 @@ def save_clip_image_features(model, dataloader, save_name, batch_size=1000 , dev
         os.makedirs(save_dir)
     with torch.no_grad():
         for images, labels in (dataloader):
-            # t = (images.shape)[2]
-            # if args.center_frame:'
-            '''
-            로더에서 나온 비디오 센터 프레임을 골라 고를떄 
-            '''
-            #     images = images.squeeze(2)
             features = model.encode_video(images.to(device))# B,T, D
             features = features.mean(dim=1)  
             all_features.append(features.cpu())
@@ -182,7 +176,6 @@ def save_activations(clip_name, target_name, target_layers, d_probe,
     dual_encoder_model.eval()
     
     #setup data
-    #! Video Dataset은 embedded preprocess 
     data_c = data_utils.get_data(d_probe, clip_preprocess,args)
     data_c.end_point=2
     # data_c = data_utils.get_data(d_probe, target_preprocess,args)
@@ -225,7 +218,7 @@ def save_activations(clip_name, target_name, target_layers, d_probe,
         
         if not args.saved_features:
             save_internvid_video_features(dual_encoder_model, data_c, clip_save_name, batch_size, device=device,args=args)
-    if args.saved_features:# 이 아래는 saved_feature이면 안해도됌.
+    if args.saved_features:
         return
     
     if target_name.startswith("clip_"):
@@ -369,13 +362,11 @@ def get_accuracy_cbm(model, dataset, device, batch_size=250, num_workers=10):
 
 def get_off_diagonal_confusion_rate(y_true, y_pred, class_names, subset_labels):
     """
-    주어진 클래스 subset에 대해 confusion matrix의 off-diagonal 합과 혼동률 계산
-
     Args:
-        y_true (List[int] or np.array): ground-truth 레이블들
-        y_pred (List[int] or np.array): 예측값들
-        class_names (List[str]): 전체 클래스 이름 리스트
-        subset_labels (List[str]): 보고 싶은 클래스 이름들
+        y_true (List[int] or np.array): Ground-truth labels
+        y_pred (List[int] or np.array): Predicted labels
+        class_names (List[str]): List of all class names
+        subset_labels (List[str]): List of class names to display
 
     Returns:
         dict: {
@@ -390,7 +381,6 @@ def get_off_diagonal_confusion_rate(y_true, y_pred, class_names, subset_labels):
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
 
-    # subset만 필터링
     mask = np.isin(y_true, subset_indices)
     y_true_subset = y_true[mask]
     y_pred_subset = y_pred[mask]
@@ -411,12 +401,11 @@ def get_off_diagonal_confusion_rate(y_true, y_pred, class_names, subset_labels):
     }
 def get_class_subset_confusion(y_true, y_pred, class_names, target_classes):
     """
-    주어진 클래스 subset에 대해 confusion matrix 및 classification report 반환
     
     Args:
-        y_true, y_pred: 전체 예측 결과
-        class_names: 전체 클래스 이름 리스트
-        target_classes: ['pushup', 'pullup', 'situp'] 등 관심 클래스
+    y_true, y_pred: Complete prediction results
+    class_names: List of all class names
+    target_classes: Target classes of interest (e.g., ['pushup', 'pullup', 'situp'])
     
     Returns:
         cm (N x N confusion matrix), report (str)
@@ -425,7 +414,6 @@ def get_class_subset_confusion(y_true, y_pred, class_names, target_classes):
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
 
-    # 해당 클래스만 필터링
     mask = np.isin(y_true, target_indices)
     y_true_filtered = y_true[mask]
     y_pred_filtered = y_pred[mask]
@@ -449,17 +437,14 @@ def get_detailed_metrics_cbm(model, dataset, device, batch_size=250, num_workers
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.numpy())
 
-    # 전체 confusion matrix
     cm = confusion_matrix(all_labels, all_preds)
     correct = sum([pred == label for pred, label in zip(all_preds, all_labels)])
     total = len(all_labels)
     accuracy = correct / total
 
     print(f"Accuracy: {accuracy:.4f}")
-    # classification report
     report = classification_report(all_labels, all_preds,labels=[i for i in range(dataloader.dataset.nb_classes)],target_names=class_names, digits=3)
 
-    # 클래스별 accuracy 계산
     class_accuracies = cm.diagonal() / cm.sum(axis=1)
     class_accuracy_dict = {}
     if class_names is not None:
@@ -479,23 +464,19 @@ def get_accuracy_and_concept_distribution_cbm(model,k,dataset, device, batch_siz
     total = 0
     num_object,num_action,num_scene=model.s_proj_layer.weight.shape[0],model.t_proj_layer.weight.shape[0],model.p_proj_layer.weight.shape[0]
     num_concept = num_object + num_action + num_scene  
-    
-    # concept set의 인덱스 범위
+
     object_range = (0, num_object)  
     action_range = (num_object, num_object + num_action)
     scene_range = (num_object + num_action, num_concept)
-    
-    # concept set별 개수 기록용 변수 초기화
+
     total_object_count = 0
     total_action_count = 0
     total_scene_count = 0
     model.eval()
-    # with open(os.path.join(save_name,"class_concept_contribution.csv"), "w") as f:
-        # f.write("label,topk_indices\n")
+
     for images, labels in tqdm(DataLoader(dataset, batch_size, num_workers=10,
                                            pin_memory=True)):
         with torch.no_grad():
-            #outs = target_model(images.to(device))
             outs, concept_activation = model(images.to(device))
             pred = torch.argmax(outs, dim=1)
             correct += torch.sum(pred.cpu()==labels)
@@ -504,7 +485,6 @@ def get_accuracy_and_concept_distribution_cbm(model,k,dataset, device, batch_siz
             concept_contribution = concept_activation * pred_weights  
             topk_indices = torch.topk(concept_contribution, k, dim=1).indices  # shape: (batch, topk)
 
-            # 각 샘플에 대해 concept set의 개수 세기
             for i in range(topk_indices.size(0)):
                 object_count = action_count = scene_count = 0
                 for idx in topk_indices[i]:
@@ -514,15 +494,11 @@ def get_accuracy_and_concept_distribution_cbm(model,k,dataset, device, batch_siz
                         action_count += 1
                     elif scene_range[0] <= idx < scene_range[1]:
                         scene_count += 1
-                
-                # 전체 개수 합산
+
                 total_object_count += object_count
                 total_action_count += action_count
                 total_scene_count += scene_count
                 
-                # with open(os.path.join(save_name,"class_concept_contribution.csv"), "a") as f:
-                    # topk_indices_str = ",".join(map(str, topk_indices[i].cpu().tolist()))
-                    # f.write(f"{labels[i].item()},{topk_indices_str}\n")
     
     return correct/total,[total_object_count,total_action_count,total_scene_count]
 
@@ -664,7 +640,6 @@ def save_r3d_video_features(model, dataloader, save_name, batch_size=1000, devic
     model.eval()
     model.to(device)
 
-    # fc 제거하고 feature만 받기
     model.fc = torch.nn.Identity()
 
     if os.path.exists(save_name):
@@ -699,9 +674,6 @@ def save_lavila_video_features(model, dataloader, save_name, batch_size=1000 , d
         os.makedirs(save_dir)
     with torch.no_grad():
         for images, labels in (dataloader):
-            # t = (images.shape)[2]
-            # if args.center_frame:
-            #     images = images.squeeze(2)
             features = model.encode_image(images.to(device))# B, D
             all_features.append(features.cpu())
 
@@ -722,21 +694,11 @@ def save_internvid_video_features(model, dataloader, save_name, batch_size=1000 
         os.makedirs(save_dir)
     # for end_point in range(5):
     all_features = []
-        # dataset.end_point = end_point
-        # dl=DataLoader(dataset, batch_size, num_workers=10, pin_memory=True,shuffle=False)
     with torch.no_grad():
         for images, labels in (dataloader):
-            # t = (images.shape)[2]
-            # if args.center_frame:
-            #     images = images.squeeze(2)
             features = model.encode_vision(images.to(device))
             all_features.append(features.cpu())
-            # all_labels+=(labels.tolist())
     torch.save(torch.cat(all_features), save_name)
-        # torch.save(torch.cat(all_labels), os.path.join(save_dir,'label.pt'))
-        # with open(os.path.join(save_dir,"label.txt"), "w") as file:
-        #     for item in all_labels:
-        #         file.write(f"{item}\n") 
         #free memory
     del all_features
     torch.cuda.empty_cache()
@@ -775,17 +737,15 @@ def analysis_backbone_dim(model,dataset,args,number_act=5,view_num=50):
         contributions = backbone_feat[0]*model.proj_layer.weight[high_spatial_concept, :]
         _,top_dim = torch.topk(contributions, dim=0, k=number_act)
         dims = top_dim.cpu().numpy()
-        distribution += np.bincount(dims, minlength=768)  # 분포 카운트 누적
+        distribution += np.bincount(dims, minlength=768) 
         sorted_indices = np.argsort(distribution)
-        N = view_num  # 예: 상위 10개, 하위 10개의 차원을 출력
-        bottom_N_indices = sorted_indices[:N]  # 하위 N개
-        top_N_indices = sorted_indices[-N:][::-1]  # 상위 N개 (큰 값부터 출력)
+        N = view_num  
+        bottom_N_indices = sorted_indices[:N]  
+        top_N_indices = sorted_indices[-N:][::-1]  
 
-        # 해당 차원의 활성화 횟수
         bottom_N_values = distribution[bottom_N_indices]
         top_N_values = distribution[top_N_indices]
 
-    # 결과 출력
     print(f"Top {N} most activated dimensions: {top_N_indices}")
     print(f"Activation counts for most activated dimensions: {top_N_values}\n")
 
@@ -801,38 +761,25 @@ import torch
 import numpy as np
 from PIL import Image
 from IPython.display import display, Image as IPImage
-# Dataloader로부터 얻은 tensor (C, T, H, W)
 
 def visualize_gif(image,label,path,index,img_ind):
     tensor = image
     if len(tensor.shape)>4:
         tensor = tensor[index]
     video_name = path.split('/')[-1].split('.')[0]
-    # image_folder = f'./gif/{img_ind}_{video_name}'
-    # os.makedirs(image_folder, exist_ok=True)
     gif_path = f'./gif/{img_ind}_{video_name}_{index}.gif'
 
-    # if not os.path.exists(gif_path):
-    # 텐서를 (T, H, W, C)로 변환
     tensor = tensor.permute(1, 2, 3, 0)  # (T, H, W, C)
 
-    # 텐서를 numpy 배열로 변환
     tensor_np = tensor.numpy()
 
-    # 이미지 리스트 생성
     images = []
     for i in range(tensor_np.shape[0]):
-        # 각 프레임을 (H, W, C) 형태로 변환 후 0~255 범위로 스케일링
         frame = ((tensor_np[i] - tensor_np[i].min()) / (tensor_np[i].max() - tensor_np[i].min()) * 255).astype(np.uint8)
         frame_image = Image.fromarray(frame)
         images.append(frame_image)
-        # frame_image_path = os.path.join(image_folder, f'77688_0000{i+10}.png')
-        # frame_image.save(frame_image_path)
-    # GIF로 저장 (duration은 각 프레임 사이의 시간, 100ms = 0.1초)
+
     
 
     images[0].save(gif_path, save_all=True, append_images=images[1:], duration=100, loop=0)
-    # else:
-    #     pass
-    # Jupyter에서 GIF 표시
     display(IPImage(filename=gif_path))

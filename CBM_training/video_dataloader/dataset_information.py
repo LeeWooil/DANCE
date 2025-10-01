@@ -25,6 +25,6 @@ DATASET_CONFIG = {
         'data_set': 'HAT',
         'data_path': '/local_datasets/HAT_dataset',
         'video_anno_path': '/data/jongseo/project/PCBEAR/dataset/HAT_annotations'
-    # 필요 시 다른 데이터셋 추가
+    
 }
 }

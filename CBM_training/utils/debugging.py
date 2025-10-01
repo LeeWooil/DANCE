@@ -6,34 +6,32 @@ from . import cbm_utils
 from . import data_utils
 from PIL import Image
 from IPython.display import display, Image as IPImage
-# Dataloader로부터 얻은 tensor (C, T, H, W)
 
 def visualize_gif(image,label,path,index,img_ind,boring):
     tensor = image
     video_name = path.split('/')[-1].split('.')[0]
     gif_path = f'./gif/{img_ind}_{video_name}_{index}.gif'
     # if not os.path.exists(gif_path):
-# 텐서를 (T, H, W, C)로 변환
+# Convert tensor to (T, H, W, C)
     tensor = tensor.permute(1, 2, 3, 0)  # (T, H, W, C)
 
-    # 텐서를 numpy 배열로 변환
+    # Convert tensor to NumPy array
     tensor_np = tensor.numpy()
 
-    # 이미지 리스트 생성
+    # Create image list
     images = []
     for i in range(tensor_np.shape[0]):
-        # 각 프레임을 (H, W, C) 형태로 변환 후 0~255 범위로 스케일링
+        # Convert each frame to (H, W, C) format and scale to the 0–255 range
         frame = ((tensor_np[i] - tensor_np[i].min()) / (tensor_np[i].max() - tensor_np[i].min()) * 255).astype(np.uint8)
         image = Image.fromarray(frame)
         images.append(image)
 
-    # GIF로 저장 (duration은 각 프레임 사이의 시간, 100ms = 0.1초)
+    # Save as GIF (duration = time between frames, 100ms = 0.1 sec)
     
 
     images[0].save(gif_path, save_all=True, append_images=images[1:], duration=100, loop=0)
-    # else:
-        # pass
-    # Jupyter에서 GIF 표시
+
+    # Display GIF in Jupyter
     display(IPImage(filename=gif_path))
 # def dual_encoder(args,save_name)
 
@@ -50,7 +48,6 @@ def debug(args,save_name):
     print("?***? Start test")
     accuracy,concept_counts = cbm_utils.get_accuracy_and_concept_distribution_cbm(model, k, val_data_t, device,64,10,save_name)
     counted_object,counted_action,counted_scene = concept_counts
-    # 전체 테스트 샘플 개수 (total_samples)를 직접 넣어주세요.
     total_samples = len(val_data_t)
     print("=== Basic Information ===")
     print(f"Total Samples: {total_samples}")
@@ -59,18 +56,18 @@ def debug(args,save_name):
     print(f"Number of Scene Concepts: {num_scene}")
     print(f"Total Number of Concepts: {total_concepts}")
     print("=========================\n\n")
-    # 각 속성에 대해 샘플당 평균 사용된 concept 수 계산
-# 각 속성의 평균 사용 비율 계산
+    # Calculate the average number of concepts used per sample for each attribute
+    # Calculate the average usage ratio of each attribute
     avg_usage_object = counted_object / (total_samples*k)
     avg_usage_action = counted_action / (total_samples*k)
     avg_usage_scene = counted_scene / (total_samples*k)
 
-    # 각 속성의 사용 비율을 속성별 concept 개수로 정규화
+    # Normalize each attribute's usage ratio by the number of concepts in that attribute
     normalized_usage_object = avg_usage_object / num_object
     normalized_usage_action = avg_usage_action / num_action
     normalized_usage_scene = avg_usage_scene / num_scene
 
-    # 합이 1이 되도록 각 사용 비율을 조정
+    # Adjust usage ratios so that their sum equals 1
     total_normalized_usage = normalized_usage_object + normalized_usage_action + normalized_usage_scene
     ratio_object = normalized_usage_object / total_normalized_usage
     ratio_action = normalized_usage_action / total_normalized_usage
@@ -87,11 +84,6 @@ def debug(args,save_name):
     print(f"Proportion of Object Concepts Usage: {ratio_object:.3f}")
     print(f"Proportion of Action Concepts Usage: {ratio_action:.3f}")
     print(f"Proportion of Scene Concepts Usage: {ratio_scene:.3f}")
-    # print("Sum of Ratios (should be 1):", ratio_object + ratio_action + ratio_scene)
-    # 결과 출력
-    
 
-    # print("Normalized Usage Ratio for Object Concepts:", normalized_usage_object)
-    # print("Normalized Usage Ratio for Action Concepts:", normalized_usage_action)
-    # print("Normalized Usage Ratio for Scene Concepts:", normalized_usage_scene)
+    
     print("?****? Accuracy: {:.2f}%".format(accuracy*100))

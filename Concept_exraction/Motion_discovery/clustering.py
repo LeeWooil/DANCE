@@ -14,7 +14,7 @@ def extract_label(args,json_data, class_map):
     if args.dataset == "Penn_action":
         label_dict = util.video_class_mapping(args)
         def get_label(video_id):
-            class_name = label_dict.get(video_id, "unknown")  # 매칭되지 않으면 "unknown"
+            class_name = label_dict.get(video_id, "unknown")  
             return class_map.get(class_name, -1)
 
         labels = np.array([get_label(video_id) for video_id in video_ids])
@@ -44,7 +44,6 @@ def extract_label(args,json_data, class_map):
     return labels
 
 def run_finch_clustering(data, labels, args, output_path):
-    """FINCH 클러스터링 후 원하는 partition의 결과로 NMI 계산."""
     if args.clustering_mode == "partition":
         use_partition_num = args.use_partition_num
         c, num_clust, req_c = FINCH(
@@ -84,10 +83,8 @@ def run_kmeans_clustering(data, labels, args, output_path):
     kmeans = KMeans(n_clusters=args.req_cluster, random_state=655, n_init='auto')  
     cluster_labels = kmeans.fit_predict(data)
 
-    # NMI 계산
     score = nmi(labels, cluster_labels)
-    
-    # 결과 저장
+
     output_txt_path = os.path.join(
         output_path, f"L{args.len_subsequence}N{args.num_subsequence}_{args.req_cluster}_output.txt"
     )
@@ -99,11 +96,9 @@ def run_kmeans_clustering(data, labels, args, output_path):
 
 
 def run_som_clustering(data, labels, args, output_path):
-    """SOM 기반 클러스터링 후 NMI 계산 및 저장"""
     
     n_clusters = args.req_cluster
 
-    # SOM 설정 (가로 x 세로 셀 수 = 원하는 클러스터 수)
     som_side = int(np.ceil(np.sqrt(n_clusters)))
     som = MiniSom(x=som_side, y=som_side, input_len=data.shape[1], sigma=1.0, learning_rate=0.5, random_seed=655)
     
@@ -118,10 +113,8 @@ def run_som_clustering(data, labels, args, output_path):
 
     num_concept = len(np.unique(cluster_labels))
 
-    # NMI 계산
     score = nmi(labels, cluster_labels)
 
-    # 결과 저장
     output_txt_path = os.path.join(output_path, f"L{args.len_subsequence}N{args.num_subsequence}_{num_concept}_output.txt")
     with open(output_txt_path, 'w') as f:
         text = f"num_concept :{num_concept} NMI Score: {score * 100:.2f}"
@@ -132,8 +125,7 @@ def run_som_clustering(data, labels, args, output_path):
     
     
 def clustering(args,output_path):
-    """메인 실행 함수."""
-    util.set_seed(42)  # 랜덤 시드 설정
+    util.set_seed(42)  
     data, json_data = util.load_data(output_path)
     data = data.reshape(data.shape[0], -1)
     print(data.shape)

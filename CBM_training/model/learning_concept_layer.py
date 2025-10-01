@@ -33,32 +33,26 @@ def train_pose_cocept_layer(args,target_features, val_target_features,save_name)
         exit()
     # similarity_fn = similarity.cos_similarity_cubed_single_sample
     if args.pose_label is not None:
-        # pkl 파일 경로
         file_path = args.pose_label
         n_feat = target_features.size(0)
         n_val_feat = val_target_features.size(0)
-        # 파일 로드
         with open(os.path.join(file_path,'hard_label_train.pkl'), "rb") as file:
-            hard_label_train = pickle.load(file)  # data는 리스트이며, 각 요소는 dict로 구성
+            hard_label_train = pickle.load(file)  
         with open(os.path.join(file_path,'hard_label_val.pkl'), "rb") as file:
-            hard_label_val = pickle.load(file)  # data는 리스트이며, 각 요소는 dict로 구성
-        # 'attribute_label' 키의 value를 추출하고 모두 모음
+            hard_label_val = pickle.load(file) 
         train_attribute = [item['attribute_label'] for item in hard_label_train]
         
-        # torch.tensor로 변환
+
         train_result_tensor = torch.tensor(train_attribute,dtype=target_features.dtype)
     
         val_attribute = [item['attribute_label'] for item in hard_label_val]
         
-            
-        
-        # torch.tensor로 변환
         
         val_result_tensor = torch.tensor(val_attribute,dtype=target_features.dtype)
         print("▶ target_features:", target_features.shape)
         print("▶ train_result_tensor:", train_result_tensor.shape)
-        print("▶ 첫 5개 labels:", train_result_tensor[:5])
-        print("▶ 마지막 5개 labels:", train_result_tensor[-5:])
+        print("▶ First 5 labels:", train_result_tensor[:5])
+        print("▶ Last 5 labels:", train_result_tensor[-5:])
         
         if not args.use_mlp:
             train_result_tensor[train_result_tensor == 0.] = 0.05
@@ -71,13 +65,6 @@ def train_pose_cocept_layer(args,target_features, val_target_features,save_name)
             print("----------------Using Noisy sample----------------------")
 
     
-    '''
-    label에서 -1 아닌애들로 재구성 ( torch.where이나 이런거로 -1아닌 인덱스 얻음)
-    [0,,,,,99] -1인애들이 3,6,11
-    new_index = [0,1,2,4,5,7,,,,,99]
-    target_feat[new_index,:]
-    val_target_feat[val_new_index,:]
-    '''
     train_valid_index = torch.where(train_result_tensor.max(dim=1).values != -1)[0]
     val_valid_index = torch.where(val_result_tensor.max(dim=1).values != -1)[0]
     
@@ -108,7 +95,6 @@ def train_pose_cocept_layer(args,target_features, val_target_features,save_name)
     # import pickle
     # result_tensor /= torch.norm(result_tensor,dim=1,keepdim=True)
 
-    # 결과 출력
     for i in range(args.proj_steps):
         batch = torch.LongTensor(random.sample(indices, k=proj_batch_size))
         outs = proj_layer(target_features_indexed[batch].to(args.device).detach())
@@ -137,12 +123,6 @@ def train_pose_cocept_layer(args,target_features, val_target_features,save_name)
                 best_step = i
                 if args.use_mlp:
                     best_weights = proj_layer.weight.clone()
-                    # best_weights = {
-                    # "linear.weight": proj_layer.linear.weight.clone(),
-                    # "linear.bias": proj_layer.linear.bias.clone(),
-                    # "linear2.weight": proj_layer.linear2.weight.clone(),
-                    # "linear2.bias": proj_layer.linear2.bias.clone()
-                # }
                 else:
                     best_weights = proj_layer.weight.clone()
 
@@ -152,17 +132,10 @@ def train_pose_cocept_layer(args,target_features, val_target_features,save_name)
                 if args.use_mlp:
                     best_weights = proj_layer.weight.clone()
 
-                #     best_weights = {
-                #     "linear.weight": proj_layer.linear.weight.clone(),
-                #     "linear.bias": proj_layer.linear.bias.clone(),
-                #     "linear2.weight": proj_layer.linear2.weight.clone(),
-                #     "linear2.bias": proj_layer.linear2.bias.clone()
-                # }
+                
                 else:
                     best_weights = proj_layer.weight.clone()
             else: #stop if val loss starts increasing
-                # break
-                # print(loss)
                 pass
             if args.use_mlp:
                 print("Step:{}, Avg train similarity:{:.4f}, Avg val similarity:{:.4f}".format(i, loss.cpu(),
@@ -186,9 +159,7 @@ def train_pose_cocept_layer(args,target_features, val_target_features,save_name)
     W_c = proj_layer.weight[:]
     torch.save(W_c, os.path.join(save_name ,"W_c.pt"))
 
-    # save_classification = os.path.join(save_name,'classification')
     return W_c, best_val_loss
-    # os.mkdir(save_classification)
 
 def train_cocept_layer(args,concepts, target_features,val_target_features,clip_feature,val_clip_features,save_name):
     similarity_fn = similarity.cos_similarity_cubed_single_concept
@@ -355,15 +326,13 @@ def get_concept_features(
 
 def train_aggregated_classification_layer(
     args=None,
-    # aggregated_train_c_features=None,
-    # aggregated_val_c_features=None,
     target_features=None, 
     val_target_features=None,
     W_c = None,
     concepts=None,
     save_name=None
 ):
-    # 통합 저장 폴더 생성
+    # Create integrated save folder
     save_name = os.path.join(save_name, 'aggregated')
     os.makedirs(save_name, exist_ok=True)
     aggregated_train_c_features = []
@@ -382,30 +351,30 @@ def train_aggregated_classification_layer(
     aggregated_train_c = torch.cat(aggregated_train_c_features, dim=1)
     aggregated_val_c = torch.cat(aggregated_val_c_features, dim=1)
 
-    # 클래스 로드
+    # Load classes
     cls_file = os.path.join(args.video_anno_path, 'class_list.txt')
     with open(cls_file, "r") as f:
         classes = f.read().split("\n")
     assert args.nb_classes == len(classes), f"Error: args.nb_classes ({args.nb_classes}) != len(classes) ({len(classes)})"
 
-    # 타겟 로딩
+    # Load target
     train_video_dataset, _ = datasets.build_dataset(True, False, args)
     val_video_dataset,_ = datasets.build_dataset(False, False, args)
     train_y = torch.LongTensor(train_video_dataset.label_array)
     val_y = torch.LongTensor(val_video_dataset.label_array)
 
-    # Loader 생성
+    # Create loader
     indexed_train_ds = IndexedTensorDataset(aggregated_train_c, train_y)
     val_ds = TensorDataset(aggregated_val_c, val_y)
     indexed_train_loader = DataLoader(indexed_train_ds, batch_size=args.saga_batch_size, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=args.saga_batch_size, shuffle=False)
 
-    # 모델 초기화
+    # Initialize model
     linear = torch.nn.Linear(aggregated_train_c.shape[1], len(classes)).to(args.device)
     linear.weight.data.zero_()
     linear.bias.data.zero_()
 
-    # GLM 설정
+    # Configure GLM
     STEP_SIZE = 0.05
     ALPHA = 0.99
     metadata = {'max_reg': {'nongrouped': args.lam}}
@@ -422,7 +391,7 @@ def train_aggregated_classification_layer(
     torch.save(W_g, os.path.join(save_name, "W_g.pt"))
     torch.save(b_g, os.path.join(save_name, "b_g.pt"))
 
-    # ✅ 개념 리스트 저장
+    # ✅ Save concept list
     concepts = [item for sublist in concepts for item in sublist]
     if concepts:
         with open(os.path.join(save_name, "concepts.txt"), 'w') as f:
@@ -430,7 +399,7 @@ def train_aggregated_classification_layer(
             for concept in concepts[1:]:
                 f.write('\n' + concept)
 
-    # 메트릭 저장
+    # Save metrics
     with open(os.path.join(save_name, "metrics.txt"), 'w') as f:
         out_dict = {k: float(output_proj['path'][0][k]) for k in ('lam', 'lr', 'alpha', 'time')}
         out_dict['metrics'] = output_proj['path'][0]['metrics']
@@ -1083,23 +1052,18 @@ def soft_label(args,target_features, val_target_features,save_name):
         exit()
     # similarity_fn = similarity.cos_similarity_cubed_single_sample
     if args.pose_label is not None:
-        # pkl 파일 경로
         file_path = args.pose_label
 
-        # 파일 로드
         with open(os.path.join(file_path,'soft_label_train.pkl'), "rb") as file:
-            hard_label_train = pickle.load(file)  # data는 리스트이며, 각 요소는 dict로 구성
+            hard_label_train = pickle.load(file)  
         with open(os.path.join(file_path,'soft_label_val.pkl'), "rb") as file:
-            hard_label_val = pickle.load(file)  # data는 리스트이며, 각 요소는 dict로 구성
-        # 'attribute_label' 키의 value를 추출하고 모두 모음
+            hard_label_val = pickle.load(file)  
         train_attribute = [item['attribute_label'] for item in hard_label_train]
         
-        # torch.tensor로 변환
         train_result_tensor = torch.tensor(train_attribute,dtype=target_features.dtype)
         
         val_attribute = [item['attribute_label'] for item in hard_label_val]
         
-        # torch.tensor로 변환
         
         val_result_tensor = torch.tensor(val_attribute,dtype=target_features.dtype)
 
@@ -1124,7 +1088,6 @@ def soft_label(args,target_features, val_target_features,save_name):
     # import pickle
     # result_tensor /= torch.norm(result_tensor,dim=1,keepdim=True)
 
-    # 결과 출력
     for i in range(args.proj_steps):
         batch = torch.LongTensor(random.sample(indices, k=proj_batch_size))
         outs = proj_layer(target_features[batch].to(args.device).detach())
@@ -1174,8 +1137,6 @@ def soft_label(args,target_features, val_target_features,save_name):
                 else:
                     best_weights = proj_layer.weight.clone()
             else: #stop if val loss starts increasing
-                # break
-                # print(loss)
                 pass
             print("Step:{}, Avg train similarity:{:.4f}, Avg val similarity:{:.4f}".format(i, -loss.cpu(),
                                                                                             -val_loss.cpu()))

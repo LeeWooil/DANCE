@@ -317,16 +317,12 @@ class AIM(nn.Module):
         B, C, T, H, W = x.shape 
     #     center_idx = T // 2 
     
-    # # center 값을 복사하여 새로운 텐서로 만들기
-    #     center_value = x[:, :, center_idx, :, :].unsqueeze(2)  # [B, C, 1, H, W] 크기의 텐서 생성
-    #     x = center_value.repeat(1, 1, T, 1, 1)  #
         x = rearrange(x, 'b c t h w -> (b t) c h w')
         x = self.conv1(x)
         x = x.reshape(x.shape[0], x.shape[1], -1) 
         x = x.permute(0, 2, 1)
         
         x = torch.cat([self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device), x], dim=1)
-        #! Add classification token-> 각 프레임당 1개씩 ex) (8*10), 196+1, 768 
         x = x + self.positional_embedding.to(x.dtype) #! Positional embedding, (8*10), 197, 768
         n = x.shape[1]
         x = rearrange(x, '(b t) n d -> (b n) t d', t=self.num_frames)

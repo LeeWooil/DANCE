@@ -183,7 +183,6 @@ class CLIP(nn.Module):
         #! Patch embedding -> (B*T), L(Token length), D(Dimension) ex) (8*10),196,768
         
         x = torch.cat([self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device), x], dim=1)
-        #! Add classification token-> 각 프레임당 1개씩 ex) (8*10), 196+1, 768 
         x = x + self.positional_embedding.to(x.dtype) #! Positional embedding, (8*10), 197, 768
         n = x.shape[1]
         x = rearrange(x, '(b t) n d -> (b n) t d', t=T)

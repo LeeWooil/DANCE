@@ -203,7 +203,7 @@ def get_multi_modal_encoder(args,device):
         #META Video-text model
         dual_encoder_model, _ = get_lavila(args,device=device) 
     elif args.dual_encoder == "clip":
-        #OpenAI 나온 image-text model
+        #OpenAI released image-text model
         name = 'ViT-B/16'
         dual_encoder_model, _ = clip.load(name, device=device)
     elif "internvid" in args.dual_encoder:
@@ -265,13 +265,13 @@ def main(args):
     video_utils.init_distributed_mode(args)
     
     seed = args.seed
-    random.seed(seed)  # Python random seed 설정
-    np.random.seed(seed)  # NumPy random seed 설정
-    torch.manual_seed(seed)  # PyTorch random seed 설정 (CPU)
+    random.seed(seed)  # Set Python random seed
+    np.random.seed(seed)  # Set NumPy random seed
+    torch.manual_seed(seed)  # Set PyTorch random seed (CPU)
     
     if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)  # PyTorch random seed 설정 (CUDA)
-        torch.cuda.manual_seed_all(seed)  # 모든 GPU에 적용
+        torch.cuda.manual_seed(seed)  # Set PyTorch random seed (CUDA)
+        torch.cuda.manual_seed_all(seed) # Apply to all GPUs
         
     #! Load model
     dual_encoder = get_multi_modal_encoder(args,device).to(device).eval() 

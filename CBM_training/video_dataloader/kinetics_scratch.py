@@ -273,7 +273,6 @@ class VideoClsDataset_scratch(Dataset):
             vr.seek(0)
             buffer = vr.get_batch(all_index).asnumpy()
             return buffer
-        #! vr에 영상 다읽어서 frame 넣어놓음. 대부분 250frame
         # handle temporal segments
         converted_len = int(self.clip_len * self.frame_sample_rate)#64
         seg_len = len(vr) // self.num_segment

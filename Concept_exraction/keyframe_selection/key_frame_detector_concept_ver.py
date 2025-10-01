@@ -7,8 +7,8 @@ import argparse
 from Concept_exraction.utils.keyframe_selection_utils import convert_frame_to_grayscale, prepare_dirs
 
 def keyframeDetection(source, dest, Thres ,plotMetrics=False, verbose=False, thres_len=70, thres_len2=200):
-    video_name = os.path.splitext(os.path.basename(source))[0]  # 파일명 (확장자 제거)
-    video_dest = os.path.join(dest, video_name)  # 저장 폴더 구조 설정
+    video_name = os.path.splitext(os.path.basename(source))[0] 
+    video_dest = os.path.join(dest, video_name)  
 
     keyframePath = os.path.join(video_dest, 'keyFrames')
     imageGridsPath = os.path.join(video_dest, 'imageGrids')
@@ -50,7 +50,6 @@ def keyframeDetection(source, dest, Thres ,plotMetrics=False, verbose=False, thr
 
     cap.release()
 
-    # 키 프레임 검출
     y = np.array(lstdiffMag)
     base = peakutils.baseline(y, 2)
     if length > thres_len :
@@ -61,16 +60,6 @@ def keyframeDetection(source, dest, Thres ,plotMetrics=False, verbose=False, thr
 
 
 
-    # if plotMetrics:
-    #     plot_metrics(indices, lstfrm, lstdiffMag)
-
-    # with open(txt_file, "w") as txt_out:
-    #     for x in indices:
-    #         txt_out.write(f"{lstfrm[x]}\n")
-    
-    # print(f"📄 TXT 파일 저장 완료: {txt_file}")
-    # 키 프레임 저장 및 CSV 기록
-    
     for cnt, x in enumerate(indices, start=1):
         cv2.imwrite(os.path.join(keyframePath, f'keyframe{cnt}.jpg'), full_color[x])
         log_message = [f'keyframe {cnt} happened at {timeSpans[x]} sec.']
@@ -82,13 +71,8 @@ def keyframeDetection(source, dest, Thres ,plotMetrics=False, verbose=False, thr
 
     cv2.destroyAllWindows()
 
-    # if len(indices) > 0:
-    #     height, width, _ = full_color[0].shape
-    #     output_video_path = os.path.join(video_dest, "keyframes_video.mp4")
-    #     save_keyframes_as_video(keyframePath, output_video_path, (width, height), fps=50)
 
 def process_all_videos(input_folder, dest, Thres, plotMetrics, verbose, thres_len):
-    """ 폴더 내 모든 MP4 비디오에 대해 keyframeDetection 수행 """
     video_files = []
 
     for root, dirs, files in os.walk(input_folder):
@@ -97,10 +81,10 @@ def process_all_videos(input_folder, dest, Thres, plotMetrics, verbose, thres_le
                 video_files.append(os.path.join(root, file))
 
     if not video_files:
-        print("⚠️ 입력 폴더에 MP4 비디오가 없습니다.")
+        print("⚠️ No MP4 videos found in the input folder.")
         return
 
-    print(f"📂 {len(video_files)}개의 비디오를 처리합니다...")
+    print(f"📂 Processing {len(video_files)} videos...")
 
     for video in video_files:
         video_path = os.path.join(input_folder, video)
@@ -121,4 +105,4 @@ if __name__ == "__main__":
                        args.plot, args.verbose, args.thres_len)
     t1 = time.time()
     elapsed = t1 - t0
-    print(f"⏱️ 키프레임 JPG 저장 시간: {elapsed:.2f}초")
+    print(f"⏱️ Keyframe JPG saving time: {elapsed:.2f} sec")

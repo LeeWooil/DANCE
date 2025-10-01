@@ -283,12 +283,12 @@ def train_cbm_and_save(args):
     val_backbone_features=torch.load(args.backbone_features.replace(f'{args.data_set}_train',f'{args.data_set}_val'),map_location="cpu").float()
     if args.new_anno_path and args.backbone.startswith("vmae_"):
         print("[NEWCLASS] Extracting backbone features for new class…")
-        # 1) 원본 anno 경로 백업 및 교체
+        # 1) Backup and replace original annotation path
         orig_anno = args.video_anno_path
         args.video_anno_path = args.new_anno_path
         video_encoder = get_video_encoder(args,device).to(device).eval()
 
-        # 2) train split feature 추출
+        # 2) Extract features for train split
         ds_train, _ = datasets.build_dataset(True, False, args)
         loader_train = DataLoader(
             ds_train,
@@ -304,7 +304,7 @@ def train_cbm_and_save(args):
                 new_train_feats_list.append(feats.cpu())
         new_train_feats = torch.cat(new_train_feats_list, dim=0)
 
-        # 3) val split feature 추출
+        # 3) Extract features for val split
         ds_val, _ = datasets.build_dataset(False, False, args)
         loader_val = DataLoader(
             ds_val,
@@ -320,10 +320,10 @@ def train_cbm_and_save(args):
                 new_val_feats_list.append(feats.cpu())
         new_val_feats = torch.cat(new_val_feats_list, dim=0)
 
-        # 4) annotation 경로 원복
+        # 4) Restore original annotation path
         args.video_anno_path = orig_anno
 
-        # 5) 기존 + 신규 합치기
+        # 5) Merge existing and new ones
         backbone_features = torch.cat([backbone_features, new_train_feats], dim=0)
         val_backbone_features = torch.cat([val_backbone_features, new_val_feats], dim=0)
         print(f"[NEWCLASS] merged backbone_features: {backbone_features.shape}")
@@ -377,7 +377,7 @@ def train_cbm_and_save(args):
         
         aggregated_concepts.append(pose_concepts)
         aggregated_W_c.append(pose_W_c)
-        # pose 학습 완료 후
+        # After completing pose training
         concepts_txt_path = os.path.join(pose_save_path, "concepts.txt")
         with open(concepts_txt_path, "w") as f:
             f.write(pose_concepts[0])
@@ -406,10 +406,10 @@ def train_cbm_and_save(args):
         val_vlm_features = torch.load(args.vlm_features.replace(f'{args.data_set}_train', f'{args.data_set}_val'), map_location="cpu").float()
         vlm_features /= torch.norm(vlm_features, dim=1, keepdim=True)
         val_vlm_features /= torch.norm(val_vlm_features, dim=1, keepdim=True)
-    # ─── 신규 클래스용 VLM feature 바로 추출 & concat (InternVid 전용) ────────
+    # ─── Directly extract & concatenate VLM features for new classes (InternVid only) ────────
     if args.new_anno_path and args.dual_encoder.startswith("internvid"):
         print("[NEWCLASS] Extracting InternVid VLM features for new class…")
-        # 1) 원본 anno 경로 백업 및 교체
+        # 1) Backup and replace original annotation path
         orig_anno = args.video_anno_path
         args.video_anno_path = args.new_anno_path
 
@@ -445,7 +445,7 @@ def train_cbm_and_save(args):
                 new_vlm_val.append(feats.cpu())
         new_vlm_val = torch.cat(new_vlm_val, dim=0)
 
-        # 4) annotation 경로 원복
+        # 4) Restore annotation path
         args.video_anno_path = orig_anno
 
         # 5) concat
@@ -490,7 +490,7 @@ def train_cbm_and_save(args):
 
 
 
-    # Textual concepts 학습
+    # Train textual concepts
     for key in active_concepts:
         save_path = os.path.join(save_name, key)
         os.makedirs(save_path, exist_ok=True)
@@ -507,7 +507,7 @@ def train_cbm_and_save(args):
             save_name=save_path
         )
         end_time = time.time()
-        print(f"concept layer 실행 시간 : {end_time - start_time:.4f}초" )
+        print(f"Concept layer execution time: {end_time - start_time:.4f} sec")
         if len(args.train_mode)<2 or args.learn_each_cls:
             train_c, val_c = train_classification_layer(
                 args=args,
@@ -527,7 +527,7 @@ def train_cbm_and_save(args):
         aggregated_W_c.append(text_W_c)
         
         
-# Aggregated classification 학습
+# Train aggregated classification
     if len(args.train_mode)<2: 
         return
     print("🧠 Training aggregated concept classifier...")
@@ -543,101 +543,9 @@ def train_cbm_and_save(args):
         save_name=save_name
     )
     end_time = time.time()
-    print(f"cls layer 실행 시간 : {end_time - start_time:.4f}초" )
+    print(f"cls layer execution time : {end_time - start_time:.4f}초" )
     print("✅ Aggregated classification training complete.")
 
-    
-    
-    
-    
-#     with torch.no_grad():
-#     #! VLM Textual features
-#         s_text_features = torch.load(s_concept_save_name, map_location="cpu").float()
-#         s_text_features /= torch.norm(s_text_features, dim=1, keepdim=True)
-#         p_text_features = torch.load(p_concept_save_name, map_location="cpu").float()
-#         p_text_features /= torch.norm(p_text_features, dim=1, keepdim=True)
-#     #! Concept matrix         
-#         s_concept_matrix = vlm_features @ s_text_features.T
-#         s_val_concept_matrix = val_vlm_features @ s_text_features.T
-#         p_concept_matrix = vlm_features @ p_text_features.T
-#         p_val_concept_matrix = val_vlm_features @ p_text_features.T
-        
-
-    
-#     #filter concepts not activating highly
-#     s_highest = torch.mean(torch.topk(s_concept_matrix, dim=0, k=5)[0], dim=0)
-#     p_highest = torch.mean(torch.topk(p_concept_matrix, dim=0, k=5)[0], dim=0)
-
-
-#     if args.print:
-#         for i, concept in enumerate(s_concepts):
-#             if s_highest[i]<=args.clip_cutoff:
-#                 print("!**Spatial** Deleting {}, CLIP top5:{:.3f}".format(concept, s_highest[i]))
-#         for i, concept in enumerate(p_concepts):
-#             if p_highest[i]<=args.clip_cutoff:
-#                 print("!**Place** Deleting {}, CLIP top5:{:.3f}".format(concept, p_highest[i]))
-#     original_n_concept = len(s_concepts)
-#     s_concepts = [s_concepts[i] for i in range(len(s_concepts)) if s_highest[i]>args.clip_cutoff]
-#     print(f"!**Spatial** Num concept: {original_n_concept} -> {len(s_concepts)}")
-#     original_p_concept = len(p_concepts)
-#     p_concepts = [p_concepts[i] for i in range(len(p_concepts)) if p_highest[i]>args.clip_cutoff]
-#     print(f"!**Place** Num concept: {original_p_concept} -> {len(p_concepts)}")
-
-
-#     s_concept_matrix = s_concept_matrix[:, s_highest>args.clip_cutoff]
-#     p_concept_matrix = p_concept_matrix[:, p_highest>args.clip_cutoff]
-#     s_val_concept_matrix = s_val_concept_matrix[:, s_highest>args.clip_cutoff]
-#     p_val_concept_matrix = p_val_concept_matrix[:, p_highest>args.clip_cutoff]
-    
-
-    
-#     s_save_name = os.path.join(save_name,'spatial');os.makedirs(s_save_name,exist_ok=True)
-#     p_save_name = os.path.join(save_name,'place');os.makedirs(p_save_name,exist_ok=True)
-
-# #! Learning Spatial concepts
-#     s_W_c, s_concepts, s_best_val_loss= train_cocept_layer(args=args,
-#                                                             concepts=s_concepts,
-#                                                             target_features=backbone_features,
-#                                                             val_target_features=val_backbone_features,
-#                                                             clip_feature=s_concept_matrix,
-#                                                             val_clip_features=s_val_concept_matrix,
-#                                                             save_name=s_save_name)
-#     spatial_train_c,spatial_val_c=train_classification_layer(args=args,
-#                                W_c=s_W_c,
-#                                pre_concepts= None, 
-#                                concepts=s_concepts,
-#                                target_features=backbone_features,
-#                                val_target_features=val_backbone_features,
-#                                save_name=s_save_name,
-#                                joint=None,
-#                                best_val_loss=s_best_val_loss)
-# #! Learning Place concepts
-    
-#     p_W_c, p_concepts, p_best_val_loss= train_cocept_layer(args=args,
-#                                                             concepts=p_concepts,
-#                                                             target_features=backbone_features,
-#                                                             val_target_features=val_backbone_features,
-#                                                             clip_feature=p_concept_matrix,
-#                                                             val_clip_features=p_val_concept_matrix,
-#                                                             save_name=p_save_name)
-#     place_train_c,place_val_c=train_classification_layer(args=args,
-#                                W_c=p_W_c,
-#                                pre_concepts= None, 
-#                                concepts=p_concepts,
-#                                target_features=backbone_features,
-#                                val_target_features=val_backbone_features,
-#                                save_name=p_save_name,
-#                                joint=None,
-#                                best_val_loss=p_best_val_loss)
-    
-#     aggregated_concepts = [str(i) for i in range(pose_train_c.shape[1])]+s_concepts+p_concepts
-#     train_c_features=torch.cat(aggregated_train_c_features,dim=1)
-    
-    
-#     #! 얻어진 컨셉들은 interpretability cutoff적용된 새로운 것.
-
-#     train_aggregated_classification_layer(args=args,
-#                                           aggregated_train_c_features=aggregated_train_c_features)
 
 
 if __name__=='__main__':
@@ -645,4 +553,4 @@ if __name__=='__main__':
     start_time = datetime.now()
     train_cbm_and_save(args)
     end_time = datetime.now()
-    print(f"🚀 Run time: {(end_time-start_time).total_seconds():.2f} seconds")  # 초 단위로 변환
+    print(f"🚀 Run time: {(end_time-start_time).total_seconds():.2f} seconds")  

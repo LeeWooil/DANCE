@@ -19,23 +19,20 @@ def make_attribute(args, result_gt,save_path,output_path,num_concept):
     for video_id, labels_ in video_frames.items():
         one_hot_vector = np.zeros(num_concept, dtype=int)
         for label in labels_:
-            one_hot_vector[label] = 1  # 등장한 클러스터에 1 할당
+            one_hot_vector[label] = 1 
         if args.dataset == "Penn_action" or args.dataset == "KTH":
             video_name = f"{video_id}.mp4"
         elif args.dataset == "HAA100" :
             video_name = f"{video_id.rsplit('_', 1)[0]}/{video_id}.mp4"
         elif args.dataset == "UCF101":
-    # video_id 예시: v_ApplyEyeMakeup_g10_c03
             if video_id.startswith("v_"):
-                # v_ 제거 → ApplyEyeMakeup_g10_c03
                 no_prefix = video_id[2:]
-                # 클래스 이름만 추출: ApplyEyeMakeup
                 class_name = no_prefix.split('_')[0]
                 if class_name == "HandStandPushups":
                     class_name = "HandstandPushups"
                 video_name = f"{class_name}/{video_id}.avi"
             else:
-                video_name = f"{video_id}.avi"  # fallback
+                video_name = f"{video_id}.avi"  
         video_entry = {
             "video_name": video_name,
             "attribute_label": one_hot_vector.tolist()
@@ -43,7 +40,6 @@ def make_attribute(args, result_gt,save_path,output_path,num_concept):
         
         video_attributes.append(video_entry)
 
-    # JSON 파일로 저장
     output_annotation_path = os.path.join(save_path,"video_attributes.json")
     with open(output_annotation_path, "w") as f:
         json.dump(video_attributes, f, indent=4)
@@ -85,7 +81,6 @@ def hard_label(video_attributes, args, save_path, num_concept, mode):
     with open(output_json_path, "w") as f:
         json.dump(sorted_annotations, f, indent=4)
 
-    # ✅ Pickle 파일로 저장
     with open(output_pkl_path, "wb") as f:
         pickle.dump(sorted_annotations, f)
     # util.remove_missing_videos(csv_path, missing_videos, new_csv_path)
